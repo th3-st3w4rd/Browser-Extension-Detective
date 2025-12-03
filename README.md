@@ -1,4 +1,4 @@
-# chrome_ext_search
+# Browser Extension Dextective (BED)
 
 Blue Team utility used to find local Chrome extension IDs on a local PC.  It will only search for the current user that you are signed in with.  There is an option to search for the extesnions online, internet connection needed, or to continue in Offline mode.
 
