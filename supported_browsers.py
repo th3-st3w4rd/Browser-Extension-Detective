@@ -17,41 +17,40 @@ class Browser():
             self.home_env = Path(os.environ["LOCALAPPDATA"])
         else:
             raise Exception(f"'{self.host_os}' is not supported.")
-    #def create_result_structure()
     
 class Chrome(Browser):
     def __init__(self, online):
         super().__init__(online)
 
     def discover_chrome_extensions(self):
-        self.results.update({"windows_results":{}})
         google_profile_locs = self.home_env.joinpath("Google","Chrome","User Data")
         dir_items = os.listdir(google_profile_locs)
-        local_results = self.search_chrome_locally(google_profile_locs, dir_items)
-        if self.online:
-            # use recursion to go down the tree?
-            self.results["windows_results"].update({"online":{}})
-            for profile in local_results.keys():
-                self.results["windows_results"]["online"].update({profile:{}})
-                for ext_ids in local_results[profile].keys():
-                    ext_name = self.search_google_web_store(extension_id=ext_ids)
-                    self.results["windows_results"]["online"][profile].update({ext_ids:ext_name})
-        else:
-            self.results["windows_results"].update({"offline": local_results})
+        default_location = google_profile_locs.joinpath("Default","Extensions")
+        locations_to_search = [default_location]
 
+        for item in dir_items:
+            if item.startswith("Profile"):
+                locations_to_search.append(google_profile_locs.joinpath(item,"Extensions"))
+
+        local_results = self.search_chrome_locally(locations_to_search)
+        self.results["chrome"] = local_results
         return self.results
     
-    def search_chrome_locally(self, google_profile_locs, dir_items):
+    def search_chrome_locally(self, locations_to_search):
         findings = {}
-        for profiles in dir_items:
-            if profiles.startswith("Profile"):
-                findings.update({profiles:{}})
-                ext_locs = [google_profile_locs.joinpath(profiles,"Extensions")]
-                for loc in ext_locs:
-                    for exts in os.listdir(loc):
-                        findings[profiles].update({exts:"n/a"})
-                        logging.info(f"Found Profile: '{profiles}' Extension ID:'{exts}'")
+        for profiles_extensions in locations_to_search:
+            lowest_exts = os.listdir(profiles_extensions)
+            profile_name = profiles_extensions.parent.name
+            total_exts = {}
+            for lowest_ext in lowest_exts:
+                ext_name = "offline_search_only"
+                if self.online:
+                    ext_name = self.search_google_web_store(lowest_ext)
+                total_exts[lowest_ext] = ext_name
+            findings[profile_name] = total_exts
         return findings
+
+
 
     def search_google_web_store(self,extension_id):
         try:
@@ -65,7 +64,7 @@ class Chrome(Browser):
         except Exception as e:
             logging.debug(e)
             logging.error("Could not access this item")
-            ext_name = "unknown_extension"
+            ext_name = "unknown_extension_via_online_search"
         finally:
             sleep_time = 1
             logging.info(f"Sleeping for '{sleep_time}' seconds before sending another request.")
