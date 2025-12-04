@@ -6,7 +6,7 @@ import argparse
 import json
 from pprint import pprint
 
-from supported_browsers import Chrome, Edge
+from src.supported_browsers import Chrome, Edge
 
 logging.basicConfig(
     filename='chrome_ext_search.log', 
