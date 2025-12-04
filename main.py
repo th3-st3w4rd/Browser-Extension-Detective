@@ -3,6 +3,8 @@ This is a BLue Team utility used to find local Chrome extension IDs.
 """
 import logging
 import argparse
+import json
+from pprint import pprint
 
 from supported_browsers import Chrome, Edge
 
@@ -19,24 +21,26 @@ logging.basicConfig(
 #     return os_type
 
 def main():
+    results = None
     parser= argparse.ArgumentParser()
-    parser.add_argument("-o", "--online", action="store_true", help="Searches online.")
+    parser.add_argument("-i", "--online", action="store_true", help="Searches the internet for extension stores.")
     parser.add_argument("-c", "--chrome", action="store_true", help="Searches locally for Google Chrome extensions.")
-    parser.add_argument("-e", "--edge", action="store_true", help="Searches locally for Microsoft Edge extensions.")
-    parser.add_argument("-f", "--fire-fox", action="store_true", help="Searches locally for Mozilla FireFox extensions.")
-    parser.add_argument("-a", "--all-system-users", action="store_true", help="Searches entire system, not just current user.")
+    # parser.add_argument("-e", "--edge", action="store_true", help="Searches locally for Microsoft Edge extensions.")
+    # parser.add_argument("-f", "--fire-fox", action="store_true", help="Searches locally for Mozilla FireFox extensions.")
+    # parser.add_argument("-a", "--all-system-users", action="store_true", help="Searches entire system, not just current user.")
     args = parser.parse_args()
     if args.chrome:
-        search = Chrome(args.online)
-        print(search.discover_chrome_extensions())
-    if args.edge:
-        search = Edge(args.online)
-        print(search.discover_edge_extension())
+        browser = Chrome(args.online)
+        results = browser.discover_chrome_extensions()
+    # if args.edge:
+    #     search = Edge(args.online)
+    #     print(search.discover_edge_extension())
     # online, browsers = set_options()
     # # print(online_search)
     # # print(browser_type)
     # final_results = extension_discovery(system=host_os, browser_types=browsers, online_search=online)
-    # print(json.dumps(final_results, indent=4))
+    # print(json.dumps(results, indent=4))
+    pprint(results)
 
 if __name__ == "__main__":
     main()
