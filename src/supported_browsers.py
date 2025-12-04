@@ -8,8 +8,8 @@ import requests
 from bs4 import BeautifulSoup
 
 class Browser():
-    def __init__(self, online):
-        self.host_os = platform.system().lower()
+    def __init__(self, online, host_os):
+        self.host_os = host_os
         self.online = online
         self.results = {}
 
@@ -19,8 +19,9 @@ class Browser():
             raise Exception(f"'{self.host_os}' is not supported.")
     
 class Chrome(Browser):
-    def __init__(self, online):
-        super().__init__(online)
+    def __init__(self, online, host_os):
+        super().__init__(online, host_os)
+        self.discover_chrome_extensions()
 
     def discover_chrome_extensions(self):
         google_profile_locs = self.home_env.joinpath("Google","Chrome","User Data")
@@ -33,8 +34,7 @@ class Chrome(Browser):
                 locations_to_search.append(google_profile_locs.joinpath(item,"Extensions"))
 
         local_results = self.search_chrome_locally(locations_to_search)
-        self.results["chrome"] = local_results
-        return self.results
+        self.results = local_results
     
     def search_chrome_locally(self, locations_to_search):
         findings = {}
@@ -49,8 +49,6 @@ class Chrome(Browser):
                 total_exts[lowest_ext] = ext_name
             findings[profile_name] = total_exts
         return findings
-
-
 
     def search_google_web_store(self,extension_id):
         try:
