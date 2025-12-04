@@ -6,7 +6,7 @@ from pprint import pprint
 from src.case_handler import CaseHandler
 
 logging.basicConfig(
-    filename='chrome_ext_search.log', 
+    filename='bed.log', 
     encoding='utf-8',
     level=logging.INFO,
     format="%(levelname)s - %(asctime)s: %(message)s",
