@@ -8,47 +8,66 @@ import requests
 from bs4 import BeautifulSoup
 
 class Browser():
-    def __init__(self, online, host_os):
+    def __init__(self, online, host_os, all_accounts = False):
         self.host_os = host_os
         self.online = online
         self.results = {}
+        self.all_accounts = all_accounts
+        self.users_to_enumerate = list()
 
         if self.host_os == "windows":
-            self.home_env = Path(os.environ["LOCALAPPDATA"])
+            if all_accounts:
+                user_path = Path(os.environ["SYSTEMDRIVE"]).joinpath("\\Users")
+                exclusion_users = ["gaia", "default", "public", "all users", "default user"]
+                for dir_item in os.listdir(user_path):
+                    if user_path.joinpath(dir_item).is_dir() and dir_item.lower() not in exclusion_users:
+                        self.users_to_enumerate.append(user_path.joinpath(dir_item))
+            else:
+                self.users_to_enumerate.append(Path(os.environ["USERPROFILE"]))
         else:
             raise Exception(f"'{self.host_os}' is not supported.")
     
 class Chrome(Browser):
-    def __init__(self, online, host_os):
-        super().__init__(online, host_os)
-        self.discover_chrome_extensions()
+    def __init__(self, online, host_os, all_accounts):
+        super().__init__(online, host_os, all_accounts)
+        for user in self.users_to_enumerate:
+            self.discover_chrome_extensions(user)
+            print(user)
 
-    def discover_chrome_extensions(self):
-        google_profile_locs = self.home_env.joinpath("Google","Chrome","User Data")
-        dir_items = os.listdir(google_profile_locs)
-        default_location = google_profile_locs.joinpath("Default","Extensions")
-        locations_to_search = [default_location]
+    def discover_chrome_extensions(self, user):
+        logging.info("Starting 'discover_chrome_extensions'...")
+        try:
+            google_profile_locs = user.joinpath("AppData","Local","Google","Chrome","User Data")
+            dir_items = os.listdir(google_profile_locs)
+            default_location = google_profile_locs.joinpath("Default","Extensions")
+            locations_to_search = [default_location]
 
-        for item in dir_items:
-            if item.startswith("Profile"):
-                locations_to_search.append(google_profile_locs.joinpath(item,"Extensions"))
+            for item in dir_items:
+                if item.startswith("Profile"):
+                    locations_to_search.append(google_profile_locs.joinpath(item,"Extensions"))
 
-        local_results = self.search_chrome_locally(locations_to_search)
-        self.results = local_results
+            local_results = self.search_chrome_locally(locations_to_search)
+            self.results[user.name] = local_results
+        except Exception as e:
+            logging.error(e)
     
     def search_chrome_locally(self, locations_to_search):
-        findings = {}
-        for profiles_extensions in locations_to_search:
-            lowest_exts = os.listdir(profiles_extensions)
-            profile_name = profiles_extensions.parent.name
-            total_exts = {}
-            for lowest_ext in lowest_exts:
-                ext_name = "offline_search_only"
-                if self.online:
-                    ext_name = self.search_google_web_store(lowest_ext)
-                total_exts[lowest_ext] = ext_name
-            findings[profile_name] = total_exts
-        return findings
+        logging.info("Starting 'search_chrome_locally'...")
+        try:
+            findings = {}
+            for profiles_extensions in locations_to_search:
+                lowest_exts = os.listdir(profiles_extensions)
+                profile_name = profiles_extensions.parent.name
+                total_exts = {}
+                for lowest_ext in lowest_exts:
+                    ext_name = "offline_search_only"
+                    if self.online:
+                        ext_name = self.search_google_web_store(lowest_ext)
+                    total_exts[lowest_ext] = ext_name
+                findings[profile_name] = total_exts
+            return findings
+        except Exception as e:
+            logging.error(e)
 
     def search_google_web_store(self,extension_id):
         try:
