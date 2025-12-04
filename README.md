@@ -16,12 +16,13 @@ Offline mode returns only the extension ID #s with "n/a" as the value.
 
 ## Future Goals
 
-- [ ] Include support for Mac.
-- [ ] Include support for Linux.
-- [ ] Include support for Safari.
-- [ ] Include support for Fire Fox.
-- [ ] Include support for Edge.
-- [ ] Search the entire system for all users, not just the current signed in user.
-- [ ] Add command switch to search all users of current device.
+- [x] Include support to run on Windows.
+- [ ] Include support to run on Mac.
+- [ ] Include support to run on Linux.
+- [ ] Include support to search for Safari extensions.
+- [ ] Include support to search for Fire Fox extensions.
+- [ ] Include support to search for Edge extensions.
+- [x] Add function to search the current users of the current device.
+- [x] Add command switch to search all users of the current device.
 - [ ] Add command switch to point to a particular drive or mount point.
 
