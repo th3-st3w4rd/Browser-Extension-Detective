@@ -20,8 +20,7 @@ class CaseHandler:
                 host_os=self.detective_os,
                 all_accounts=self.all_accounts,
             )
-            self.results["chrome"] = chrome_browser.results
-        print(self.all_accounts)
+            self.results = chrome_browser.results
 
     def detect_detective_system(self):
         return platform.uname()
