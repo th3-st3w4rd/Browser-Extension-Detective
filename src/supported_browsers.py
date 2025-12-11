@@ -3,6 +3,7 @@ from pathlib import Path
 from time import sleep
 import logging
 import platform
+import json
 
 import requests
 from bs4 import BeautifulSoup
@@ -32,7 +33,6 @@ class Chrome(Browser):
         super().__init__(online, host_os, all_accounts)
         for user in self.users_to_enumerate:
             self.discover_chrome_extensions(user)
-            print(user)
 
     def discover_chrome_extensions(self, user):
         logging.info("Starting 'discover_chrome_extensions'...")
@@ -45,29 +45,54 @@ class Chrome(Browser):
             for item in dir_items:
                 if item.startswith("Profile"):
                     locations_to_search.append(google_profile_locs.joinpath(item,"Extensions"))
-
-            local_results = self.search_chrome_locally(locations_to_search)
-            self.results[user.name] = local_results
+    
+            self.results[user.name] = self.search_chrome_locally(locations_to_search)
         except Exception as e:
             logging.error(e)
     
+
     def search_chrome_locally(self, locations_to_search):
         logging.info("Starting 'search_chrome_locally'...")
         try:
-            findings = {}
-            for profiles_extensions in locations_to_search:
-                lowest_exts = os.listdir(profiles_extensions)
-                profile_name = profiles_extensions.parent.name
-                total_exts = {}
-                for lowest_ext in lowest_exts:
-                    ext_name = "offline_search_only"
-                    if self.online:
-                        ext_name = self.search_google_web_store(lowest_ext)
-                    total_exts[lowest_ext] = ext_name
-                findings[profile_name] = total_exts
-            return findings
+            final_results = {}
+
+            for location in locations_to_search:
+                profile_name = location.parent.name
+                browser_type = location.parent.parent.parent.name
+                if browser_type not in final_results:
+                    final_results[browser_type] = {}
+
+                ext_results = []
+                for ext_id_in_filepath in location.iterdir():
+                    for version_num_in_filepath in ext_id_in_filepath.iterdir():
+                         
+                        ext_manifest_contents = version_num_in_filepath.joinpath("manifest.json")
+
+                        if ext_manifest_contents.exists():
+
+                            with open(ext_manifest_contents, "r") as file:
+                                try:
+                                    data = json.load(file)
+                                    results_object = {
+                                        "ext_name": data.get("name", None),
+                                        "author": data.get("author", None),
+                                        "ext_id": ext_id_in_filepath.name,
+                                        "description": data.get("description", None),
+                                        "version": data.get("version", None),
+                                        "online_info":None,
+                                    }
+                                    if self.online:
+                                        results_object["online_info"] = self.search_google_web_store(results_object["ext_id"])
+                                    ext_results.append(results_object)
+                                except json.JSONDecodeError:
+                                    logging.warn("Could not decode JSON")
+
+                final_results[browser_type][profile_name] = ext_results
+
         except Exception as e:
             logging.error(e)
+
+        return final_results
 
     def search_google_web_store(self,extension_id):
         try:
