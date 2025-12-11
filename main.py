@@ -30,7 +30,7 @@ def main():
     """Initializes the `case_handler` """
     detective = CaseHandler(args)
 
-    pprint(detective.results)
+    print(json.dumps(detective.results, indent=4))
 
 
 if __name__ == "__main__":
