@@ -27,9 +27,9 @@ Offline mode returns only the extension ID #s with "n/a" as the value.
 - [ ] Add command switch to point to a particular drive or mount point.
 
 ## Usage
-usage: main.py [-h] [-i] [-a] [-c]
-options:
-  -h, --help       show this help message and exit
-  -i, --internet   Searches the internet for extension stores.
-  -a, --all-users  Searches all potential accounts on target.
-  -c, --chrome     Searches locally for Google Chrome extensions.
+usage: main.py [-h] [-i] [-a] [-c]  
+options:  
+  -h, --help       show this help message and exit  
+  -i, --internet   Searches the internet for extension stores.  
+  -a, --all-users  Searches all potential accounts on target.  
+  -c, --chrome     Searches locally for Google Chrome extensions.  
